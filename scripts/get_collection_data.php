@@ -41,7 +41,7 @@
  */
 
 // Set to 'api' if you can't run this script on your CONTENTdm server.
-$method = 'local';
+$method = 'api';
 
 /**
  * If you are running this script on the CONTENTdm server (that is, $method = 'local'),
@@ -60,7 +60,8 @@ $default_locale = 'en_US';
  * point to a location on the machine running the script, where the output will be stored.
  */
 // $contentdm_api_base_url = 'http://yourcontentdmserver.example.com:81/dmwebservices/index.php';
-// $output_dir = '/tmp/collections';
+$contentdm_api_base_url = $argv[1];
+$output_dir = '/tmp/collections';
 
 /**
  * If you want to fetch each collection's field configuration to store as a datastream
@@ -192,6 +193,7 @@ function get_collection_titles_via_api() {
   // Get the collection list from the API.
   $collection_list_json = file_get_contents($contentdm_api_base_url . '/dmwebservices/index.php?q=dmGetCollectionList/json');
   $collection_list = json_decode($collection_list_json, TRUE);
+
   foreach ($collection_list as $collection) {
     $alias = trim($collection['alias'], '/');
     $collection_records[] = array($alias, $collection['name']);
