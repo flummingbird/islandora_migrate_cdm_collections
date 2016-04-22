@@ -21,11 +21,13 @@
 function islandora_migrate_cdm_collections_ingest_collection($namespace = 'islandora', $parent = 'islandora:root',
   $input_path = '/tmp/collections/collection_data.tsv', $collection_data = array()) {
 
+  // The only non-alphanumeric character that Fedora namespaces
+  // can contain is "-".
+  $namespace = preg_replace("/[^\da-z]/m", "-", $namespace);
+    
   if ($namespace == 'use_alias') {
     $namespace = strtolower($collection_data[0]);
-    // The only non-alphanumeric character that Fedora namespaces
-    // can contain is "-".
-    $namespace = preg_replace("/[^\da-z]/m", "-", $namespace);
+    
     // Here we create a PID according the pattern 'alias:collection' (i.e., the
     // CONTENTdm alias plus the string 'collection').
     $namespace = $namespace . ':collection';
@@ -190,7 +192,10 @@ function islandora_migrate_cdm_collections_ingest_node($input_path, array $colle
   }
 
   if ($namespace == 'use_alias') {
-    $node->field_pid[LANGUAGE_NONE][0]['value'] = $collection_data[0] . ':collection';
+    global $base_path;
+    $pid_url = sprintf("%sislandora/object/%s%%3Acollection", $base_path, $collection_data[0]);
+    $pid_link = sprintf("<a href='%s'>%s</a>", $pid_url, $collection_data[0]);
+    $node->field_pid[LANGUAGE_NONE][0]['value'] = $pid_link;
   }
   else {
     $node->field_pid[LANGUAGE_NONE][0]['value'] = '';
