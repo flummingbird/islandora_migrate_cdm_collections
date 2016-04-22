@@ -21,12 +21,12 @@
 function islandora_migrate_cdm_collections_ingest_collection($namespace = 'islandora', $parent = 'islandora:root',
   $input_path = '/tmp/collections/collection_data.tsv', $collection_data = array()) {
 
-  // The only non-alphanumeric character that Fedora namespaces
-  // can contain is "-".
-  $namespace = preg_replace("/[^\da-z]/m", "-", $namespace);
-    
   if ($namespace == 'use_alias') {
     $namespace = strtolower($collection_data[0]);
+
+    // The only non-alphanumeric character that Fedora namespaces
+    // can contain is "-".
+    $namespace = preg_replace("/[^\da-z]/m", "-", $namespace);
     
     // Here we create a PID according the pattern 'alias:collection' (i.e., the
     // CONTENTdm alias plus the string 'collection').
