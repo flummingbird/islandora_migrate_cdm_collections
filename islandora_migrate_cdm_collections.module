@@ -199,11 +199,7 @@ function islandora_migrate_cdm_collections_ingest_node($input_path, array $colle
   }
   $node->field_cdm_alias[LANGUAGE_NONE][0]['value'] = $collection_data[0];
   if (array_key_exists(2, $collection_data)) {
-    global $base_root;
-    $pid_url = sprintf("%s/islandora/object/%s%%3Acollection", $base_root, $collection_data[0]);
-    $pid_link = sprintf("<p><a href='%s'>%s</a></p>", $pid_url, 'Browse Collection');
-    print "Base root = " . $base_root;
-    $node->field_description[LANGUAGE_NONE][0]['value'] = $pid_link . $collection_data[2];
+    $node->field_description[LANGUAGE_NONE][0]['value'] = $collection_data[2];
     $node->field_description[LANGUAGE_NONE][0]['format'] = 'full_html';
   }
 
