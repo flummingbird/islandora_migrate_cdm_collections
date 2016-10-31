@@ -32,7 +32,26 @@ function islandora_migrate_cdm_collections_ingest_collection($namespace = 'islan
   try {
     $tuque = new IslandoraTuque();
     $repository = $tuque->repository;
-    $collection_object = $repository->constructObject($namespace);
+
+    // Check first to be sure we haven't already created this collection.
+    $collection_object = islandora_object_load($namespace);
+    if ($collection_object) {
+      $update = true;
+      $same_title = $collection_object->label == $collection_data[1];
+      //$same_description = $collection_object->description == strip_tags($collection_data[2])
+      if($same_title){
+        drupal_set_message(t('Islandora collection object %t (PID %p) ALREADY EXISTS.', array('%t' => $collection_object->label, '%p' => $collection_object->id)));
+        return;
+      }else{
+        drupal_set_message(t('Islandora collection object %t (PID %p) UPDATING LABEL to %n.',
+            array('%t' => $collection_object->label, '%p' => $collection_object->id, '%n' => $collection_data[1])), 'warning');
+        watchdog('islandora_migrate_cdm_collections', 'Islandora collection object %t (PID %p) UPDATING LABEL to %n.',
+            array('%t' => $collection_object->label, '%p' => $collection_object->id, '%n' => $collection_data[1]), WATCHDOG_WARNING);
+      }
+    }else{
+      $collection_object = $repository->constructObject($namespace);
+    }
+
     $collection_object->label = $collection_data[1];
 
     $collection_policy_xml = <<<EOCP
@@ -150,12 +169,19 @@ EODC;
     $rels = $collection_object->relationships;
     $rels->add('info:fedora/fedora-system:def/relations-external#', 'isMemberOfCollection', $parent, FALSE);
     $rels->add('info:fedora/fedora-system:def/model#', 'hasModel', 'islandora:collectionCModel', FALSE);
-
-    $repository->ingestObject($collection_object);
-    drupal_set_message(t('Ingested Islandora collection object %t (PID %p).',
-      array('%t' => $collection_object->label, '%p' => $collection_object->id)));
-    watchdog('islandora_migrate_cdm_collections', 'Ingested Islandora collection object %t (PID %p).',
-      array('%t' => $collection_object->label, '%p' => $collection_object->id), WATCHDOG_INFO);
+    if($update == true){
+        islandora_invoke_object_hooks(ISLANDORA_OBJECT_MODIFIED_HOOK, $collection_object->models, $collection_object);
+        drupal_set_message(t('Updated Islandora collection object %t (PID %p).',
+            array('%t' => $collection_object->label, '%p' => $collection_object->id)));
+        watchdog('islandora_migrate_cdm_collections', 'Updated Islandora collection object %t (PID %p).',
+            array('%t' => $collection_object->label, '%p' => $collection_object->id), WATCHDOG_INFO);
+    }else{
+        $repository->ingestObject($collection_object);
+        drupal_set_message(t('Ingested Islandora collection object %t (PID %p).',
+            array('%t' => $collection_object->label, '%p' => $collection_object->id)));
+        watchdog('islandora_migrate_cdm_collections', 'Ingested Islandora collection object %t (PID %p).',
+            array('%t' => $collection_object->label, '%p' => $collection_object->id), WATCHDOG_INFO);
+    }
   }
   catch (Exception $e) {
     drupal_set_message(t('Error ingesting Islandora collection object %t (PID %p).',
